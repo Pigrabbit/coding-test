@@ -2,7 +2,7 @@
 #include <vector>
 #include <numeric>
 #define CATCH_CONFIG_MAIN
-#include "catch.hpp"
+#include "../lib/catch.hpp"
 
 using namespace std;
 
