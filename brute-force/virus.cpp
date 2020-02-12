@@ -4,8 +4,12 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
-// #define CATCH_CONFIG_MAIN
-// #include "../lib/catch.hpp"
+#define CATCH_CONFIG_MAIN
+#include "../lib/catch.hpp"
+#define SPACE    0
+#define WALL     1
+#define VIRUS    2
+#define INFECTED 3
 
 using namespace std;
 
@@ -47,73 +51,10 @@ vector<vector<pair<int, int>>> getCombination(int** map, int n, int m) {
     return comb;
 }
 
-// TEST_CASE("getCombination") {
-//     SECTION("example 1") {
-//         int n = 4;
-//         int m = 6;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
-
-//         int row1[] = {0, 0, 0, 0, 1, 0};
-//         int row2[] = {1, 0, 0, 1, 0, 2};
-//         int row3[] = {1, 1, 1, 0, 0, 2};
-//         int row4[] = {0, 0, 0, 1, 0, 2};
-
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-//         map[3] = row4;
-
-//         vector<vector<pair<int, int>>> comb = getCombination(map, n, m);
-//         // for (auto i: comb) {
-//         //     for (auto ii: i) {
-//         //         cout << "(" << ii.first << ", " << ii.second << ") ";
-//         //     }
-//         //     cout << "\n";
-//         // }
-//         cout << "\n";
-//     }
-//     SECTION("example 2") {
-//         int n = 3;
-//         int m = 3;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
-
-//         int row1[] = {0, 0, 2};
-//         int row2[] = {0, 1, 1};
-//         int row3[] = {1, 0 ,0};
-
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-
-//         vector<vector<pair<int, int>>> comb = getCombination(map, n, m);
-//         // for (auto i: comb) {
-//         //     for (auto ii: i) {
-//         //         cout << "(" << ii.first << ", " << ii.second << ") ";
-//         //     }
-//         //     cout << "\n";
-//         // }
-//         cout << "\n";
-//     }
-// }
-
 // Todo 1: diffuseVirus
 // Input: N X M grid, not diffused
 // Output: N x M grid, diffused
-int** diffuseVirus(int** map, int n, int m) {
-    int** diffusedMap = new int*[n];
-    for (int i = 0; i < n; i++) {
-        diffusedMap[i] = new int[m];
-        for (int j = 0; j < m; j++) {
-            diffusedMap[i][j] = map[i][j];
-        }
-    }
-
+void diffuseVirus(int** map, int n, int m) {
     bool** visited = new bool*[n];
     for (int i = 0; i < n; i++) {
         visited[i] = new bool[m];
@@ -127,7 +68,7 @@ int** diffuseVirus(int** map, int n, int m) {
 
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < m; j++) {
-            if (map[i][j] == 2) {
+            if (map[i][j] == VIRUS || map[i][j] == INFECTED) {
                 // virus detected
                 // cout << "virus detected at (" << j << ", " << i << ")\n";
                 visited[i][j] = true;
@@ -143,11 +84,11 @@ int** diffuseVirus(int** map, int n, int m) {
                         int neighborY = curY + dy[k];
                         if (neighborX >=0 && neighborX < m && neighborY >= 0 && neighborY < n) {
                             if (!visited[neighborY][neighborX]) {
-                                if (map[neighborY][neighborX] == 0) {
+                                if (map[neighborY][neighborX] == SPACE) {
                                     // cout << "\t\tVirus: Time to diffuse!\n";
-                                    diffusedMap[neighborY][neighborX] = 2;
+                                    map[neighborY][neighborX] = INFECTED;
                                     bfsQueue.push(make_pair(neighborX, neighborY));
-                                } else if (map[neighborY][neighborX] == 2){
+                                } else if (map[neighborY][neighborX] == VIRUS || map[neighborY][neighborX] == INFECTED){
                                     // cout << "\t\tvirus detected at (" << neighborX << ", " << neighborY << ")\n";
                                     bfsQueue.push(make_pair(neighborX, neighborY));
                                 }
@@ -159,127 +100,41 @@ int** diffuseVirus(int** map, int n, int m) {
         }
     }
 
-    return diffusedMap;
+    for (int i = 0; i < n; i++) {
+        delete [] visited[i];
+    }
 }
 
-// TEST_CASE("diffuseVirus") {
-//     SECTION("example 1") {
-//         int n = 3;
-//         int m = 3;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
-
-//         int row1[] = {0, 0, 2};
-//         int row2[] = {0, 1, 1};
-//         int row3[] = {1, 0 ,0};
-
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-
-//         int** diffusedMap = diffuseVirus(map, n, m);
-//         // for (int i = 0; i < n; i++) {
-//         //     for (int j = 0; j < m; j++) {
-//         //         cout << diffusedMap[i][j]  << " "; 
-//         //     }
-//         //     cout << "\n";
-//         // }
-//         REQUIRE(diffusedMap[0][0] == 2);
-//         REQUIRE(diffusedMap[0][1] == 2);
-//         REQUIRE(diffusedMap[1][0] == 2);
-//     }
-//     SECTION("example 2") {
-//         int n = 4;
-//         int m = 6;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
-
-//         int row1[] = {0, 0, 0, 0, 1, 0};
-//         int row2[] = {1, 0, 0, 1, 0, 2};
-//         int row3[] = {1, 1, 1, 0, 0, 2};
-//         int row4[] = {0, 0, 0, 1, 0, 2};
-
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-//         map[3] = row4;
-
-//         int** diffusedMap = diffuseVirus(map, n, m);
-//         // for (int i = 0; i < n; i++) {
-//         //     for (int j = 0; j < m; j++) {
-//         //         cout << diffusedMap[i][j]  << " "; 
-//         //     }
-//         //     cout << "\n";
-//         // }
-//         REQUIRE(diffusedMap[0][5] == 2);
-//         REQUIRE(diffusedMap[1][4] == 2);
-//         REQUIRE(diffusedMap[2][3] == 2);
-//         REQUIRE(diffusedMap[2][4] == 2);
-//         REQUIRE(diffusedMap[3][4] == 2);
-//     }
-// }
+void revertDiffusion(int** map, int n, int m) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < m; j++) {
+            if (map[i][j] == INFECTED) {
+                map[i][j] = SPACE;
+            }
+        }
+    }
+}
 
 // Todo 2: buildWall
 // Input: N x M grid, 3 pos (y, x) to build wall
 // Output: N x M grid, wall built
 
-int** buildWall(int** map, vector<pair<int, int>> coordinate, int n, int m) {
-    int** wallBuiltdMap = new int*[n];
-    for (int i = 0; i < n; i++) {
-        wallBuiltdMap[i] = new int[m];
-        for (int j = 0; j < m; j++) {
-            wallBuiltdMap[i][j] = map[i][j];
-        }
-    }
+void buildWall(int** map, vector<pair<int, int>> coordinate) {
+    vector<pair<int, int>>::iterator it;
 
+    for (it = coordinate.begin(); it != coordinate.end(); ++it) {
+        int curX = (*it).first, curY = (*it).second;
+        map[curY][curX] = 1;
+    }
+}
+
+void destroyWall(int** map, vector<pair<int, int>> coordinate) {
     vector<pair<int, int>>::iterator it;
     for (it = coordinate.begin(); it != coordinate.end(); ++it) {
         int curX = (*it).first, curY = (*it).second;
-        wallBuiltdMap[curY][curX] = 1;
+        map[curY][curX] = 0;
     }
-
-    return wallBuiltdMap;
 }
-
-// TEST_CASE("buildWall") {
-//     SECTION("example 1") {
-//         int n = 4;
-//         int m = 6;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
-
-//         int row1[] = {0, 0, 0, 0, 1, 0};
-//         int row2[] = {1, 0, 0, 1, 0, 2};
-//         int row3[] = {1, 1, 1, 0, 0, 2};
-//         int row4[] = {0, 0, 0, 1, 0, 2};
-
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-//         map[3] = row4;
-
-//         vector<pair<int, int>> coordinates = {make_pair(4, 0), make_pair(3, 1), make_pair(3, 3)};
-
-//         int** wallBuiltMap = buildWall(map, coordinates, n, m);
-
-//         // for (int i = 0; i < n; i++) {
-//         //     for (int j = 0; j < m; j++) {
-//         //         cout << wallBuiltMap[i][j]  << " "; 
-//         //     }
-//         //     cout << "\n";
-//         // }
-//         cout << "\n";
-//         REQUIRE(wallBuiltMap[0][4] == 1);
-//         REQUIRE(wallBuiltMap[1][3] == 1);
-//         REQUIRE(wallBuiltMap[3][3] == 1);
-//     }
-// }
 
 // Todo 3: getSafetyArea
 // Input: N x M grid
@@ -297,57 +152,147 @@ int getSafetyArea(int** map, int n, int m) {
     return safetyArea;
 }
 
-// TEST_CASE("getSafetyArea") {
-//     SECTION("example 1") {
-//         int n = 4;
-//         int m = 6;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
 
-//         int row1[] = {0, 0, 0, 0, 1, 0};
-//         int row2[] = {1, 0, 0, 1, 0, 2};
-//         int row3[] = {1, 1, 1, 0, 0, 2};
-//         int row4[] = {0, 0, 0, 1, 0, 2};
+TEST_CASE("buildWall") {
+    SECTION("example 1") {
+        int n = 4;
+        int m = 6;
+        int** map = new int*[n];
+        for (int i = 0; i < n; i++) {
+            map[i] = new int[m];
+        }
 
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
-//         map[3] = row4;
+        int row1[] = {0, 0, 0, 0, 0, 0};
+        int row2[] = {1, 0, 0, 0, 0, 2};
+        int row3[] = {1, 1, 1, 0, 0, 2};
+        int row4[] = {0, 0, 0, 0, 0, 2};
+
+        map[0] = row1;
+        map[1] = row2;
+        map[2] = row3;
+        map[3] = row4;
+
+        vector<pair<int, int>> coordinates = {make_pair(4, 0), make_pair(3, 1), make_pair(3, 3)};
         
-//         REQUIRE(getSafetyArea(map, n, m) == 14);
-//     }
-//     SECTION("example 2") {
-//         int n = 3;
-//         int m = 3;
-//         int** map = new int*[n];
-//         for (int i = 0; i < n; i++) {
-//             map[i] = new int[m];
-//         }
+        buildWall(map, coordinates);
 
-//         int row1[] = {0, 0, 2};
-//         int row2[] = {0, 1, 1};
-//         int row3[] = {1, 0 ,0};
+        REQUIRE(map[0][4] == 1);
+        REQUIRE(map[1][3] == 1);
+        REQUIRE(map[3][3] == 1);
+    }
+}
 
-//         map[0] = row1;
-//         map[1] = row2;
-//         map[2] = row3;
+TEST_CASE("destroyWall") {
+    SECTION("example 1") {
+        int n = 4;
+        int m = 6;
+        int** map = new int*[n];
+        for (int i = 0; i < n; i++) {
+            map[i] = new int[m];
+        }
 
-//         vector<vector<pair<int, int>>> comb = getCombination(map, n, m);
+        int row1[] = {0, 0, 0, 0, 0, 0};
+        int row2[] = {1, 0, 0, 0, 0, 2};
+        int row3[] = {1, 1, 1, 0, 0, 2};
+        int row4[] = {0, 0, 0, 0, 0, 2};
+
+        map[0] = row1;
+        map[1] = row2;
+        map[2] = row3;
+        map[3] = row4;
+
+        vector<pair<int, int>> coordinates = {make_pair(4, 0), make_pair(3, 1), make_pair(3, 3)};
+
+        buildWall(map, coordinates);
+        destroyWall(map, coordinates);
+
+        REQUIRE(map[0][4] == 0);
+    }
+}
+
+TEST_CASE("diffuseVirus") {
+    SECTION("example 1") {
+        int n = 3;
+        int m = 3;
+        int** map = new int*[n];
+        for (int i = 0; i < n; i++) {
+            map[i] = new int[m];
+        }
+
+        int row1[] = {0, 0, 2};
+        int row2[] = {0, 1, 1};
+        int row3[] = {1, 0 ,0};
+
+        map[0] = row1;
+        map[1] = row2;
+        map[2] = row3;
+
+        diffuseVirus(map, n, m);
         
-//         vector<int> safetyAreas;
-//         for (auto i: comb) {
-//             int** wallBuiltMap = buildWall(map, i, n, m);
-//             int** diffusedMap = diffuseVirus(wallBuiltMap, n, m);
-//             int safetyArea = getSafetyArea(diffusedMap, n, m);
-//             safetyAreas.push_back(safetyArea);
-//         }
+        REQUIRE(map[0][0] == 3);
+        REQUIRE(map[0][1] == 3);
+        REQUIRE(map[0][2] == 2);
+        REQUIRE(map[1][0] == 3);
+    }
+    SECTION("example 2") {
+        int n = 4;
+        int m = 6;
+        int** map = new int*[n];
+        for (int i = 0; i < n; i++) {
+            map[i] = new int[m];
+        }
 
-//         sort(safetyAreas.begin(), safetyAreas.end());
-//         cout << safetyAreas.back() << "\n";
-//     }
-// }
+        int row1[] = {0, 0, 0, 0, 1, 0};
+        int row2[] = {1, 0, 0, 1, 0, 2};
+        int row3[] = {1, 1, 1, 0, 0, 2};
+        int row4[] = {0, 0, 0, 1, 0, 2};
+
+        map[0] = row1;
+        map[1] = row2;
+        map[2] = row3;
+        map[3] = row4;
+
+        diffuseVirus(map, n, m);
+        
+        REQUIRE(map[0][5] == 3);
+        REQUIRE(map[1][4] == 3);
+        REQUIRE(map[2][3] == 3);
+        REQUIRE(map[2][4] == 3);
+        REQUIRE(map[3][4] == 3);
+        REQUIRE(map[3][5] == 2);
+    }
+}
+
+TEST_CASE("revertDiffusion") {
+    SECTION("example 1") {
+        int n = 4;
+        int m = 6;
+        int** map = new int*[n];
+        for (int i = 0; i < n; i++) {
+            map[i] = new int[m];
+        }
+
+        int row1[] = {0, 0, 0, 0, 1, 0};
+        int row2[] = {1, 0, 0, 1, 0, 2};
+        int row3[] = {1, 1, 1, 0, 0, 2};
+        int row4[] = {0, 0, 0, 1, 0, 2};
+
+        map[0] = row1;
+        map[1] = row2;
+        map[2] = row3;
+        map[3] = row4;
+
+        diffuseVirus(map, n, m);
+        revertDiffusion(map, n , m);
+
+        REQUIRE(map[0][5] == 0);
+        REQUIRE(map[1][4] == 0);
+        REQUIRE(map[2][3] == 0);
+        REQUIRE(map[2][4] == 0);
+        REQUIRE(map[3][4] == 0);
+        REQUIRE(map[3][5] == 2);
+    }
+}
 
 int main() {
     int n = 0, m = 0;
@@ -361,17 +306,17 @@ int main() {
         }
     }
 
-    vector<vector<pair<int, int>>> comb = getCombination(map, n, m);
-    cout << "number of combinations: " << comb.size() << "\n";
-        
+    vector<vector<pair<int, int>>> comb = getCombination(map, n, m);        
     vector<int> safetyAreas;
 
-    for (auto i: comb) {
-        int** wallBuiltMap = buildWall(map, i, n, m);
-        int** diffusedMap = diffuseVirus(wallBuiltMap, n, m);
-        int safetyArea = getSafetyArea(diffusedMap, n, m);
-        // cout << "safety area: " << safetyArea << "\n";
+    for (auto coordinates: comb) {
+        buildWall(map, coordinates);
+        diffuseVirus(map, n, m);
+        int safetyArea = getSafetyArea(map, n, m);
         safetyAreas.push_back(safetyArea);
+
+        revertDiffusion(map, n, m);
+        destroyWall(map, coordinates);
     }
 
     sort(safetyAreas.begin(), safetyAreas.end());
