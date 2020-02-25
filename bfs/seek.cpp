@@ -21,7 +21,9 @@ void bfs(int pos, int target) {
         while (!::bfsQueue.empty()){
             int currentPos = bfsQueue.front();
             bfsQueue.pop();
+            ::visited[currentPos] = true;
             dx[2] = currentPos;
+            
             for (int i = 0; i < 3; i ++) {
                 int newPos = currentPos + dx[i];
                 if (newPos >= 0 && newPos <= MAX_POS) {
