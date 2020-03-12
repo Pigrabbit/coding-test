@@ -1,50 +1,54 @@
 // Problem: https://www.acmicpc.net/problem/10942
 
 #include <iostream>
-// #include <unordered_map>
-#define CATCH_CONFIG_MAIN
-#include "../lib/catch.hpp"
+#include <cstring>
 
-bool isPalindrome(int *arr, int start, int end) {
-    bool isPalindrome = true;
-    int* pStart = arr + (start - 1);
-    int* pEnd = arr + (end - 1);
+const int MAX_LENGTH = 2000;
+const int MAX_QUERY = 1000000;
+int sequence[MAX_LENGTH+1];
+int cache[MAX_LENGTH+1][MAX_LENGTH+1];
+int query[MAX_QUERY][2];
 
-    while (pStart < pEnd) {
-        if (*pStart != *pEnd) {
-            isPalindrome = false;
-            break;
-        } else {
-            pStart++;
-            pEnd--;
-        }
+int isPalindrome(int start, int end) {
+    if (start < 1 || end > MAX_LENGTH) {
+        return 0;
     }
 
-    return isPalindrome;
+    if (start >= end) {
+        return 1;
+    }
 
-}
+    int & ret = cache[start][end];
+    if (ret != -1) {
+        return ret;
+    }
 
-TEST_CASE("isPalindrome") {
-    int length = 7;
-    int arr[length] = {1, 2, 1, 3, 1, 2, 1};
-    SECTION("example 1") {
-        int start = 1, end = 3;
-        bool isPal = isPalindrome(arr, start, end);
-        REQUIRE(isPal == true);
-    }
-    SECTION("example 2") {
-        int start = 2, end = 5;
-        bool isPal = isPalindrome(arr, start, end);
-        REQUIRE(isPal == false);
-    }
-    SECTION("example 3") {
-        int start = 3, end = 3;
-        bool isPal = isPalindrome(arr, start, end);
-        REQUIRE(isPal == true);
-    }
-    SECTION("example 4") {
-        int start = 5, end = 7;
-        bool isPal = isPalindrome(arr, start, end);
-        REQUIRE(isPal == true);
+    if (sequence[start] == sequence[end]) {
+        return ret = isPalindrome(start + 1, end - 1);
+    } else {
+        return ret = 0;
     }
 }
+
+int main() {
+    std::ios_base :: sync_with_stdio(false); 
+    std::cin.tie(NULL); 
+    std::cout.tie(NULL);
+    
+    int sequenceLen = 0, queryLen = 0;
+    std::cin >> sequenceLen;
+    for (int i = 1; i <= sequenceLen; i++) {
+        std::cin >> sequence[i];
+    }
+    std::memset(cache, -1, sizeof(cache));
+
+    std::cin >> queryLen;
+    int start, end;
+    for (int i = 0; i < queryLen; i++) {
+        std::cin >> start >> end;
+        std::cout << isPalindrome(start, end) << "\n";
+    }
+
+    return 0;
+}
+
