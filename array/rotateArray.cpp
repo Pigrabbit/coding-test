@@ -1,52 +1,82 @@
-// Problem: https://www.notion.so/f419e631988c40e499020c225f76cd7e
+// Problem: https://www.acmicpc.net/problem/17406
 
 #include <iostream>
 #include <limits.h>
 #include <vector>
 #include <algorithm>
-#define CATCH_CONFIG_MAIN
-#include "../lib/catch.hpp"
-
 
 const int MAX_WIDTH= 50, MAX_HEIGHT = 50;
 const int MAX_OPERATION = 6;
 const int NUM_ARGS = 3;
 int grid[MAX_WIDTH+1][MAX_HEIGHT+1];
+
 std::vector<std::vector<int>> operations;
 
-void transpose(int r, int c, int s) {
-    for (int y = r-s; y <= r+s ; y++) {
-        for (int x = c-s + (y-(r-s)); x <= c+s; x++) {
-            if ((y-r) != (x-c)) {
-                // swap!
-                int rowDist = y - r; // -2
-                int colDist = x - c; // -1
-                int tmp = ::grid[y][x];    
-                ::grid[y][x] = ::grid[r+colDist][c+rowDist];
-                ::grid[r+colDist][c+rowDist] = tmp;
-            }
-        }
-    }
+void pull(int fromY, int fromX, int toY, int toX){
+    grid[toY][toX] = grid[fromY][fromX];
 }
 
-void reverseRowOrder(int r, int c, int s) {
-    for (int y = r-s; y <= r+s; y++) {
-        for (int front = c-s, back = c+s; front < back; front++, back--) {
-            int tmp = ::grid[y][front];
-            ::grid[y][front] = ::grid[y][back];
-            ::grid[y][back] = tmp;
-        }
+void rotateLayerCW(int upLeftY, int upLeftX, int bottomRightY, int bottomRightX) {
+    int tmp = grid[upLeftY][upLeftX];
+    int x = upLeftX, y = upLeftY;
+
+    while (y < bottomRightY) {
+        pull(y + 1, x, y, x);
+        y++;
     }
+
+    while (x < bottomRightX) {
+        pull(y, x + 1, y, x);
+        x++;
+    }
+
+    while (y > upLeftY) {
+        pull(y - 1, x, y, x);
+        y--;
+    }
+
+    while (x > upLeftX + 1) {
+        pull(y, x - 1, y, x);
+        x--;
+    }
+    
+    grid[y][x] = tmp;
 }
+
+void rotateLayerAntiCW(int upLeftY, int upLeftX, int bottomRightY, int bottomRightX) {
+    int tmp = grid[upLeftY][upLeftX];
+    int x = upLeftX, y = upLeftY;
+
+    while (x < bottomRightX) {
+        pull(y, x + 1, y, x);
+        x++;
+    }
+    while (y < bottomRightY) {
+        pull(y + 1, x, y, x);
+        y++;
+    }
+    while (x > upLeftX) {
+        pull(y, x - 1, y, x);
+        x--;
+    }
+    while (y > upLeftY + 1) {
+        pull(y - 1, x, y, x);
+        y--;
+    }
+    grid[y][x] = tmp;
+}
+
 
 void rotateArray(int r, int c, int s) {
-    transpose(r, c, s);
-    reverseRowOrder(r, c, s);
+    for (int i = s; i > 0; i--) {
+        rotateLayerCW(r-i, c-i, r+i, c+i);
+    }
 }
 
 void undoRotation(int r, int c, int s) {
-    reverseRowOrder(r, c, s);
-    transpose(r, c, s);
+    for (int i = s; i > 0; i--) {
+        rotateLayerAntiCW(r-i, c-i, r+i, c+i);
+    }
 }
 
 int getArrayVal(int height, int width) {
@@ -63,6 +93,15 @@ int getArrayVal(int height, int width) {
     return result;
 }
 
+void printGrid(int height, int width) {
+    for (int i = 1; i <= height; i++) {
+        for (int j = 1; j <= width; j++) {
+            std::cout << grid[i][j] << " ";
+        }
+        std::cout << "\n";
+    }
+}
+
 int main() {
     int height = 0, width = 0, numOp = 0;
     std::cin >> height >> width >> numOp;
@@ -71,10 +110,7 @@ int main() {
             std::cin >> ::grid[i][j];
         }
     }
-
-    // std::vector<int> operationIndex;
     for (int i = 0; i < numOp; i++) {
-        // operationIndex.push_back(i);
         std::vector<int> operation;
         for (int j = 0; j < NUM_ARGS; j++){
             int input = 0;
@@ -84,27 +120,31 @@ int main() {
         ::operations.push_back(operation);
     }
 
+    std::sort(operations.begin(), operations.end());
     int minArrayVal = INT_MAX;
 
     do {
-        for (auto operation: ::operations) {
+        for (auto operation: operations) {
             int r = operation[0];
             int c = operation[1];
             int s = operation[2];
             rotateArray(r, c, s);
+            // std::cout << "rotate: (" << r << ", "<< c << ", " << s << ")\n";
+            // printGrid(height, width);
         }
 
         int localMin = getArrayVal(height, width);
-        std::cout << "local min: " << localMin << "\n";
+        // std::cout << "local min: " << localMin << "\n";
         minArrayVal = std::min(minArrayVal, localMin);
-        std::cout << "updated min: " << minArrayVal << "\n";
+        // std::cout << "updated min: " << minArrayVal << "\n";
         
-        for (auto rIt =  operations.rbegin(); rIt != ::operations.rend(); ++rIt) {
+        for (auto rIt =  operations.rbegin(); rIt != operations.rend(); ++rIt) {
             int r = (*rIt)[0];
             int c = (*rIt)[1];
             int s = (*rIt)[2];
-            std::cout << "undo rotation: (" << r << ", "<< c << ", " << s << ")\n";
+            // std::cout << "undo rotation: (" << r << ", "<< c << ", " << s << ")\n";
             undoRotation(r, c, s);
+            // printGrid(height, width);
         }
     } while (std::next_permutation(operations.begin(), operations.end()));
 
@@ -112,112 +152,3 @@ int main() {
     
     return 0;
 }
-
-TEST_CASE("transpose") {
-    int r = 2, c = 2, s = 1;
-
-    SECTION("example 1") {
-        int r = 3, c = 4, s = 2;
-        for (int i = 1; i <= 5; i++) {
-            for (int j = 1; j <= 6; j++) {
-                ::grid[i][j] = 6 * (i - 1) + j;
-            }
-        }
-
-        for (int i = 1; i <= 5; i++) {
-            for (int j = 1; j <= 6; j++) {
-                std::cout << ::grid[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-        
-        std::cout << ::grid[r][c] << "\n";
-        transpose(r, c, s);
-        
-        std::cout << "\n";
-        for (int i = 1; i <= 5; i++) {
-            for (int j = 1; j <= 6; j++) {
-                std::cout << ::grid[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-
-        REQUIRE(::grid);
-        REQUIRE(::grid[1][2] == 4);
-        REQUIRE(::grid[1][3] == 7);
-        REQUIRE(::grid[2][1] == 2);
-        REQUIRE(::grid[2][3] == 8);
-        REQUIRE(::grid[3][1] == 3);
-        REQUIRE(::grid[3][2] == 6);
-    }
-    SECTION("example 2") {
-        transpose(r, c, s);
-
-        std::cout << "\n";
-        for (int i = 1; i < 4; i++) {
-            for (int j = 1; j < 4; j++) {
-                std::cout << ::grid[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-
-        REQUIRE(::grid[1][2] == 2);
-        REQUIRE(::grid[1][3] == 3);
-        REQUIRE(::grid[2][1] == 4);
-        REQUIRE(::grid[2][3] == 6);
-        REQUIRE(::grid[3][1] == 7);
-        REQUIRE(::grid[3][2] == 8);
-    }
-}
-
-TEST_CASE("reverseRowOrder") {
-    int r = 2, c = 2, s = 1;
-
-    SECTION("example1") {
-        transpose(r, c, s);
-        reverseRowOrder(r, c, s);
-        
-        std::cout << "\n";
-        for (int i = 1; i < 4; i++) {
-            for (int j = 1; j < 4; j++) {
-                std::cout << ::grid[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-
-        REQUIRE(::grid[1][1] == 7);
-        REQUIRE(::grid[1][3] == 1);
-        REQUIRE(::grid[2][1] == 8);
-        REQUIRE(::grid[2][3] == 2);
-        REQUIRE(::grid[3][1] == 9);
-        REQUIRE(::grid[3][3] == 3);
-    }
-    SECTION("example 2") {
-        reverseRowOrder(r, c, s);
-        
-        std::cout << "\n";
-        for (int i = 1; i < 4; i++) {
-            for (int j = 1; j < 4; j++) {
-                std::cout << ::grid[i][j] << " ";
-            }
-            std::cout << "\n";
-        }
-
-        REQUIRE(::grid[1][1] == 1);
-        REQUIRE(::grid[1][3] == 7);
-        REQUIRE(::grid[2][1] == 2);
-        REQUIRE(::grid[2][3] == 8);
-        REQUIRE(::grid[3][1] == 3);
-        REQUIRE(::grid[3][3] == 9);
-    }
-}
-
-TEST_CASE("getArrayVal") {
-    SECTION("example 1") {
-        int height = 3, width = 3;
-        int val = getArrayVal(height, width);
-
-        REQUIRE(val == 12);
-    }
-}
-
