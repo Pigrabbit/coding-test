@@ -115,6 +115,7 @@ int bfs(int height, int width, vec<int> &redPos, vec<int> &bluePos) {
     }
 
     return ret;
+
 }
 
 int main() {
@@ -137,4 +138,7 @@ int main() {
     }
 
     cout << bfs(height, width, redPos, bluePos) << "\n";
+
+    return 0;
 }
+
