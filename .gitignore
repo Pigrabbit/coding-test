@@ -1,4 +1,5 @@
 /.vscode/
+/.vs/
 *.sh
 
 # Compiled Object files
