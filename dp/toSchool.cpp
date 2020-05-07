@@ -15,19 +15,10 @@ int cache[MAX_HEIGHT + 1][MAX_WIDTH + 1];
 int height, width;
 
 int getPath(int x, int y, vector<vector<int>> & puddles) {
-    if (x > width || y > height ) {
-        return 0;
-    }
+    if (x > width || y > height ) return 0;
     int & ret = cache[y][x];
-    if (ret != -1) {
-        cout << "cached! [" << y << "][" << x << "]\n";
-        return ret;
-    }
-    if (x == width && y == height) {
-        return 1;
-    }
-    
-    
+    if (ret != -1) return ret;
+    if (x == width && y == height) return 1;
 
     return  ret = (getPath(x + 1, y, puddles) + getPath(x, y + 1, puddles)) % 1000000007;
 }
